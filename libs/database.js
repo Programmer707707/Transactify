@@ -8,7 +8,7 @@ const {Pool} = pg;
 export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false, // This allows the connection even if the server certificate is self-signed
+        rejectUnauthorized: false, 
       },
 })
 
