@@ -13,17 +13,17 @@ export const signUpUser = async (req, res) => {
             values: [email],
         });
 
-        if (userExist.rows[0].exists) {  // Fix: `userExist.rows[0].userExists` should be `userExist.rows[0].exists`
+        if (userExist.rows[0].exists) {  
             return res.status(400).json({ message: "User already exists" });
         }
 
-        const hashedPassword = await hashPassword(password);  // Ensure async hash
+        const hashedPassword = await hashPassword(password);  
         const newUser = await pool.query(
             'INSERT INTO tbluser (firstName, email, password) VALUES($1, $2, $3) RETURNING *',
             [firstName, email, hashedPassword]
         );
 
-        newUser.rows[0].password = undefined;  // Fix: Use `newUser` here instead of `user`
+        newUser.rows[0].password = undefined;  
 
         res.status(201).json({
             status: "success",
