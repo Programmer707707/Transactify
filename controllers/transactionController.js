@@ -58,10 +58,9 @@ export const getDashboardInformation = async (req, res) => {
 
     const availableBalance = totalIncome - totalExpense;
 
-    // Aggregate transactions to sum by type and group by month
     const year = new Date().getFullYear();
-    const start_Date = new Date(year, 0, 1); // January 1st of the year
-    const end_Date = new Date(year, 11, 31, 23, 59, 59); // December 31st of the year
+    const start_Date = new Date(year, 0, 1); 
+    const end_Date = new Date(year, 11, 31, 23, 59, 59); 
 
     const result = await pool.query({
       text: `
@@ -79,7 +78,6 @@ export const getDashboardInformation = async (req, res) => {
       values: [userId, start_Date, end_Date],
     });
 
-    //   organise data
 
     const data = new Array(12).fill().map((_, index) => {
       const monthData = result.rows.filter(
@@ -99,7 +97,6 @@ export const getDashboardInformation = async (req, res) => {
       };
     });
 
-    // Fetch last transactions
     const lastTransactionsResult = await pool.query({
       text: `SELECT * FROM tbltransaction WHERE user_id = $1 ORDER BY id DESC LIMIT 5`,
       values: [userId],
@@ -107,7 +104,6 @@ export const getDashboardInformation = async (req, res) => {
 
     const lastTransactions = lastTransactionsResult.rows;
 
-    // Fetch last accounts
     const lastAccountResult = await pool.query({
       text: `SELECT * FROM tblaccount WHERE user_id = $1 ORDER BY id DESC LIMIT 4`,
       values: [userId],
@@ -170,7 +166,6 @@ export const addTransaction = async (req, res) => {
       });
     }
 
-    // Begin Transaction
     await pool.query("BEGIN");
 
     await pool.query({
@@ -215,7 +210,6 @@ export const transferMoneyToAccount = async (req, res) => {
         message: "Amount should be grater than 0.",
       });
 
-    // Check account details and balance for the 'from_account'
     const fromAccountResult = await pool.query({
       text: `SELECT * FROM tblaccount WHERE id = $1`,
       values: [from_account],
@@ -237,22 +231,18 @@ export const transferMoneyToAccount = async (req, res) => {
       });
     }
 
-    // Begin transaction
     await pool.query("BEGIN");
 
-    // Transfer from account
     await pool.query({
       text: `UPDATE tblaccount SET account_balance = account_balance - $1, updatedat = CURRENT_TIMESTAMP WHERE id = $2`,
       values: [newAmount, from_account],
     });
 
-    // Transfer to account
     const toAccount = await pool.query({
       text: `UPDATE tblaccount SET account_balance = account_balance + $1, updatedat = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
       values: [newAmount, to_account],
     });
 
-    // Insert transaction records
     const description = `Transfer (${fromAccount.account_name} - ${toAccount.rows[0].account_name})`;
 
     await pool.query({
@@ -281,7 +271,6 @@ export const transferMoneyToAccount = async (req, res) => {
       ],
     });
 
-    // Commit transaction
     await pool.query("COMMIT");
 
     res.status(201).json({
